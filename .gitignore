@@ -1,0 +1,15 @@
+# Build output
+build/
+*.apk
+
+# Signing keys and credentials - never commit
+*.keystore
+*.jks
+*.p12
+*.pem
+launcher/assets/hmip.json
+launcher/assets/bosch-client.p12
+launcher/assets/home.json
+
+# Downloaded third-party libraries
+airplay/libs/

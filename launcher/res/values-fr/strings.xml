@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Accueil</string>
+    <string name="favorites">Applications favorites</string>
+    <string name="all_apps">Toutes les apps</string>
+    <string name="all_apps_hint">Appui long sur OK pour ajouter ou retirer un favori</string>
+    <string name="releases">Nouveautés de vos services</string>
+    <string name="trending">Tendances</string>
+    <string name="new_on">Nouveau sur %1$s</string>
+    <string name="ram">RAM</string>
+    <string name="disk">Disque</string>
+    <string name="move_left">Déplacer à gauche</string>
+    <string name="move_right">Déplacer à droite</string>
+    <string name="remove_fav">Retirer des favoris</string>
+    <string name="credit">Données : JustWatch</string>
+    <string name="settings">Paramètres</string>
+    <string name="tab_home">Accueil</string>
+</resources>
