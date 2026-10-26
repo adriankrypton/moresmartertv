@@ -97,7 +97,13 @@ final class Apps {
             if (a.banner == null) {
                 try { a.banner = pm.getApplicationBanner(pkg); } catch (Exception ignored) { }
             }
-            a.icon = ri.loadIcon(pm);
+            // Highest resolution icon the app ships (default ones are often blurry on a TV)
+            try {
+                int res = ri.getIconResource();
+                if (res != 0) a.icon = pm.getResourcesForApplication(ri.activityInfo.applicationInfo)
+                        .getDrawableForDensity(res, android.util.DisplayMetrics.DENSITY_XXXHIGH, null);
+            } catch (Exception ignored) { }
+            if (a.icon == null) a.icon = ri.loadIcon(pm);
             map.put(pkg, a);
         }
     }

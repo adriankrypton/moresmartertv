@@ -64,19 +64,7 @@ final class AppsPage extends ScrollView {
                 iv.setImageDrawable(a.banner);
                 t.addView(iv);
             } else {
-                ImageView iv = new ImageView(act);
-                iv.setImageDrawable(a.icon);
-                FrameLayout.LayoutParams ip = new FrameLayout.LayoutParams(dp(38), dp(38), Gravity.CENTER_HORIZONTAL);
-                ip.topMargin = dp(14);
-                t.addView(iv, ip);
-                TextView l = Ui.text(act, 12, 0xFFFFFFFF, Typeface.create("sans-serif-medium", Typeface.NORMAL));
-                l.setText(a.label);
-                l.setSingleLine(true);
-                l.setEllipsize(TextUtils.TruncateAt.END);
-                l.setGravity(Gravity.CENTER);
-                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
-                lp.setMargins(dp(8), 0, dp(8), dp(10));
-                t.addView(l, lp);
+                Ui.iconTile(act, t, a.icon, a.label, 46);
             }
             if (favs.contains(a.pkg)) {
                 TextView star = Ui.text(act, 14, 0xFFFFD54F, Typeface.DEFAULT_BOLD);

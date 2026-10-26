@@ -186,7 +186,11 @@ Dafür einmalig die Nutzungsstatistik freigeben:
 ```bash
 adb install -r launcher/build/tvhome.apk
 adb shell appops set com.adrian.tvhome GET_USAGE_STATS allow
+adb shell appops set com.adrian.tvhome SYSTEM_ALERT_WINDOW allow
 ```
+
+Android verzögert App-Starts nach einem Home-Tastendruck um rund 5 Sekunden. Damit in dieser Zeit
+nicht das Amazon-Home zu sehen ist, legt der Launcher sofort ein Bild von sich selbst darüber.
 
 Werbung und Telemetrie lassen sich umkehrbar abschalten (`pm enable <paket>` macht es rückgängig):
 

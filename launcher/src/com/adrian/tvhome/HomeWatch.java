@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.view.View;
 
 /**
  * Fire OS sends the Home button to Amazon's ad-filled launcher and neither lets it be replaced
@@ -21,6 +22,11 @@ import android.os.IBinder;
 public class HomeWatch extends Service {
     private static final String AMAZON_LAUNCHER = "com.amazon.tv.launcher";
     private static final long INTERVAL_MS = 250;
+
+    private static final Handler MAIN = new Handler(android.os.Looper.getMainLooper());
+    private static android.graphics.Bitmap lastFrame;
+    private static HomeWatch instance;
+    private View overlay;
 
     private HandlerThread thread;
     private Handler handler;
@@ -55,6 +61,8 @@ public class HomeWatch extends Service {
             if (ts > lastCheck && AMAZON_LAUNCHER.equals(pkg) && cls != null && cls.contains("HomeActivity")) {
                 lastCheck = ts;
                 android.util.Log.i("TvHome", "Amazon home in front, switching to MoreSmarterTV");
+                // Android holds activity starts back ~5 s after Home; an overlay window is not held
+                MAIN.post(HomeWatch.this::showOverlay);
                 startActivity(new Intent(HomeWatch.this, MainActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
             } else if (ts > lastCheck) {
@@ -64,8 +72,54 @@ public class HomeWatch extends Service {
         }
     };
 
+    /** Keeps a picture of the launcher to show while Android delays its return. */
+    static void snapshot(View root) {
+        try {
+            if (root.getWidth() == 0) return;
+            android.graphics.Bitmap b = android.graphics.Bitmap.createBitmap(root.getWidth(), root.getHeight(),
+                    android.graphics.Bitmap.Config.RGB_565);
+            root.draw(new android.graphics.Canvas(b));
+            lastFrame = b;
+        } catch (Throwable ignored) { }
+    }
+
+    static void hideOverlay() {
+        MAIN.post(() -> { if (instance != null) instance.removeOverlay(); });
+    }
+
+    private void showOverlay() {
+        if (overlay != null || !android.provider.Settings.canDrawOverlays(this)) return;
+        android.widget.ImageView iv = new android.widget.ImageView(this);
+        iv.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        iv.setBackgroundColor(0xFF000000);
+        if (lastFrame != null) iv.setImageBitmap(lastFrame);
+        iv.setFocusable(true); // swallow key presses meant for the Amazon home underneath
+        int type = android.os.Build.VERSION.SDK_INT >= 26
+                ? android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                : android.view.WindowManager.LayoutParams.TYPE_PHONE;
+        android.view.WindowManager.LayoutParams lp = new android.view.WindowManager.LayoutParams(-1, -1, type,
+                android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN
+                        | android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                android.graphics.PixelFormat.OPAQUE);
+        try {
+            ((android.view.WindowManager) getSystemService(WINDOW_SERVICE)).addView(iv, lp);
+            overlay = iv;
+            MAIN.postDelayed(this::removeOverlay, 8000); // safety net
+        } catch (Exception ignored) { }
+    }
+
+    private void removeOverlay() {
+        if (overlay == null) return;
+        final View v = overlay;
+        overlay = null;
+        v.animate().alpha(0f).setDuration(150).withEndAction(() -> {
+            try { ((android.view.WindowManager) getSystemService(WINDOW_SERVICE)).removeView(v); } catch (Exception ignored) { }
+        }).start();
+    }
+
     @Override public void onCreate() {
         super.onCreate();
+        instance = this;
         // Foreground, so Fire OS does not stop the watcher in the background
         android.app.Notification n = new android.app.Notification.Builder(this)
                 .setSmallIcon(R.drawable.ic_launcher)

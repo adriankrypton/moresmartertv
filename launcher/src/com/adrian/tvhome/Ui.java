@@ -93,6 +93,57 @@ final class Ui {
         g.setFocusable(false);
     }
 
+    /**
+     * Tile for apps without a TV banner: the logo large on a gradient in the colour of the logo,
+     * name underneath.
+     */
+    static void iconTile(Context c, FrameLayout t, Drawable icon, String label, int iconDp) {
+        int col = dominantColor(icon);
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                new int[]{shade(col, 0.55f), shade(col, 0.28f)});
+        bg.setCornerRadius(dp(c, 16));
+        t.setBackground(bg);
+        ImageView iv = new ImageView(c);
+        iv.setImageDrawable(icon);
+        FrameLayout.LayoutParams ip = new FrameLayout.LayoutParams(dp(c, iconDp), dp(c, iconDp), Gravity.CENTER_HORIZONTAL);
+        ip.topMargin = dp(c, 12);
+        t.addView(iv, ip);
+        TextView l = text(c, 13, 0xFFFFFFFF, Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        l.setText(label);
+        l.setSingleLine(true);
+        l.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        l.setGravity(Gravity.CENTER);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
+        lp.setMargins(dp(c, 10), 0, dp(c, 10), dp(c, 10));
+        t.addView(l, lp);
+    }
+
+    /** Average colour of the opaque, not grey pixels of a drawable. */
+    static int dominantColor(Drawable d) {
+        try {
+            android.graphics.Bitmap b = android.graphics.Bitmap.createBitmap(24, 24, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas cv = new android.graphics.Canvas(b);
+            d.setBounds(0, 0, 24, 24);
+            d.draw(cv);
+            long r = 0, g = 0, bl = 0, n = 0;
+            for (int y = 0; y < 24; y++) for (int x = 0; x < 24; x++) {
+                int p = b.getPixel(x, y);
+                if (Color.alpha(p) < 200) continue;
+                int pr = Color.red(p), pg = Color.green(p), pb = Color.blue(p);
+                if (Math.max(pr, Math.max(pg, pb)) - Math.min(pr, Math.min(pg, pb)) < 24) continue; // skip greys
+                r += pr; g += pg; bl += pb; n++;
+            }
+            if (n == 0) return 0xFF3A3F47;
+            return Color.rgb((int) (r / n), (int) (g / n), (int) (bl / n));
+        } catch (Exception e) {
+            return 0xFF3A3F47;
+        }
+    }
+
+    private static int shade(int c, float f) {
+        return Color.rgb(Math.round(Color.red(c) * f), Math.round(Color.green(c) * f), Math.round(Color.blue(c) * f));
+    }
+
     static ImageView fillImage(Context c, ImageView.ScaleType st) {
         ImageView iv = new ImageView(c);
         iv.setScaleType(st);

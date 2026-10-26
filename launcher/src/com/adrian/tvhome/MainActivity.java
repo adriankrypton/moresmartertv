@@ -123,6 +123,7 @@ public class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        HomeWatch.hideOverlay();
         apps = Apps.all(this);
         renderApps();
         Net.MAIN.removeCallbacks(ticker);
@@ -136,6 +137,7 @@ public class MainActivity extends Activity {
 
     @Override protected void onPause() {
         super.onPause();
+        HomeWatch.snapshot(getWindow().getDecorView());
         Net.MAIN.removeCallbacks(ticker);
         homePage.onHide();
     }
@@ -430,19 +432,7 @@ public class MainActivity extends Activity {
             iv.setImageDrawable(a.banner);
             t.addView(iv);
         } else {
-            ImageView iv = new ImageView(this);
-            iv.setImageDrawable(a.icon);
-            FrameLayout.LayoutParams ip = new FrameLayout.LayoutParams(dp(46), dp(46), Gravity.CENTER_HORIZONTAL);
-            ip.topMargin = dp(18);
-            t.addView(iv, ip);
-            TextView l = Ui.text(this, 13, 0xFFFFFFFF, medium);
-            l.setText(a.label);
-            l.setSingleLine(true);
-            l.setEllipsize(TextUtils.TruncateAt.END);
-            l.setGravity(Gravity.CENTER);
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
-            lp.setMargins(dp(10), 0, dp(10), dp(14));
-            t.addView(l, lp);
+            Ui.iconTile(this, t, a.icon, a.label, 56);
         }
         t.setContentDescription(a.label);
         t.setOnClickListener(v -> launch(a.launch));
