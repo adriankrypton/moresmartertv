@@ -189,8 +189,15 @@ adb shell appops set com.adrian.tvhome GET_USAGE_STATS allow
 adb shell appops set com.adrian.tvhome SYSTEM_ALERT_WINDOW allow
 ```
 
-Android verzögert App-Starts nach einem Home-Tastendruck um rund 5 Sekunden. Damit in dieser Zeit
-nicht das Amazon-Home zu sehen ist, legt der Launcher sofort ein Bild von sich selbst darüber.
+Fire OS hält App-Starts nach einem Home-Tastendruck rund 5 Sekunden zurück. Der Launcher legt
+deshalb sofort ein Bild von sich selbst über das Amazon-Home.
+
+- **Fire OS 7/8:** Der Start läuft über einen AlarmManager-Alarm, den `system_server` auslöst und
+  der von der Sperre ausgenommen ist (Idee: [firetv-tvos](https://github.com/NikhilSiddhu/firetv-tvos)).
+  Der Wechsel dauert dann nur Sekundenbruchteile. Dafür zusätzlich:
+  `adb shell settings put global alarm_manager_constants min_futurity=0`
+- **Fire OS 6:** Die Sperre lässt sich ohne Root nicht umgehen. Das Bild bleibt etwa 5 Sekunden
+  stehen und fängt in der Zeit Tastendrücke ab, dann ist MoreSmarterTV wirklich vorne.
 
 Werbung und Telemetrie lassen sich umkehrbar abschalten (`pm enable <paket>` macht es rückgängig):
 
