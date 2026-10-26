@@ -15,4 +15,5 @@
     <string name="credit">Données : JustWatch</string>
     <string name="settings">Paramètres</string>
     <string name="tab_home">Accueil</string>
+    <string name="volume_hud_desc">Affiche un indicateur de volume lors de l\'appui sur les touches de volume.</string>
 </resources>

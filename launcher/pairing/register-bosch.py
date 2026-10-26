@@ -6,8 +6,11 @@ LEDs flash. The script waits for pairing mode and registers automatically.
 import base64, getpass, json, os, socket, ssl, subprocess, sys, time, urllib.request
 
 if len(sys.argv) < 2:
-    sys.exit("Aufruf: python register-bosch.py <IP des Bosch Smart Home Controllers>")
+    sys.exit("Aufruf: python register-bosch.py <IP des Bosch Smart Home Controllers> [Gerätename]")
 HOST = sys.argv[1]
+# Each TV needs its own client id, otherwise pairing a second device replaces the first
+DEVICE = sys.argv[2] if len(sys.argv) > 2 else "tv"
+CLIENT_ID = "oss_tvhome_" + "".join(ch for ch in DEVICE.lower() if ch.isalnum())
 here = os.path.dirname(os.path.abspath(__file__))
 assets = os.path.join(here, "..", "assets")
 cert, key = os.path.join(here, "client-cert.pem"), os.path.join(here, "client-key.pem")
@@ -16,7 +19,7 @@ p12 = os.path.join(assets, "bosch-client.p12")
 # Client certificate for the launcher (kept out of git, see .gitignore)
 if not os.path.exists(cert):
     subprocess.run(["openssl", "req", "-x509", "-nodes", "-days", "3650", "-newkey", "rsa:2048",
-                    "-keyout", key, "-out", cert, "-subj", "/CN=oss_tvhome"], check=True)
+                    "-keyout", key, "-out", cert, "-subj", "/CN=" + CLIENT_ID], check=True)
     # -legacy: Android cannot read OpenSSL 3's default PKCS#12 encryption
     subprocess.run(["openssl", "pkcs12", "-export", "-legacy", "-in", cert, "-inkey", key,
                     "-out", p12, "-passout", "pass:tvhome", "-name", "tvhome"], check=True)
@@ -27,7 +30,7 @@ ctx.verify_mode = ssl.CERT_NONE  # controller uses a self-signed certificate
 ctx.load_cert_chain(cert, key)
 
 pw = getpass.getpass("Bosch Smart Home Systempasswort: ")
-body = json.dumps({"@type": "client", "id": "oss_tvhome", "name": "OSS TV Home",
+body = json.dumps({"@type": "client", "id": CLIENT_ID, "name": "OSS TV Home " + DEVICE,
                    "primaryRole": "ROLE_RESTRICTED_CLIENT",
                    "certificate": open(cert).read()}).encode()
 headers = {"Content-Type": "application/json", "api-version": "3.2",

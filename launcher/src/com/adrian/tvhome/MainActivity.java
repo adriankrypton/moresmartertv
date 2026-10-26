@@ -543,8 +543,8 @@ public class MainActivity extends Activity {
         android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         android.net.NetworkInfo ni = cm.getActiveNetworkInfo();
         if (ni == null || !ni.isConnected()) {
-            wifiIcon.setLevel(0);
-            wifiText.setText("Offline");
+            wifiIcon.setOffline();
+            wifiIcon.setContentDescription("Keine Internetverbindung");
         } else if (ni.getType() == android.net.ConnectivityManager.TYPE_ETHERNET) {
             wifiIcon.setEthernet();
             wifiText.setText("LAN");

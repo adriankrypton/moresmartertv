@@ -45,5 +45,13 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <!-- tvOS-style volume indicator (enable: settings put secure enabled_accessibility_services) -->
+        <service android:name=".VolumeHud" android:exported="true" android:label="MoreSmarterTV Lautstärke"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/volume_hud" />
+        </service>
     </application>
 </manifest>

@@ -12,7 +12,7 @@ final class WifiIcon extends View {
     private final RectF r = new RectF();
     /** 0 = no signal, 1..3 = arcs lit; -1 = offline (crossed out look: all dim). */
     private int bars = 3;
-    private boolean ethernet;
+    private boolean ethernet, offline;
 
     WifiIcon(Context c) {
         super(c);
@@ -25,14 +25,24 @@ final class WifiIcon extends View {
         }
     }
 
+    /** No connection: dimmed symbol with an exclamation mark, like tvOS. */
+    void setOffline() {
+        ethernet = false;
+        offline = true;
+        bars = 0;
+        invalidate();
+    }
+
     void setLevel(int percent) {
         ethernet = false;
+        offline = false;
         bars = percent < 0 ? -1 : percent >= 66 ? 3 : percent >= 33 ? 2 : percent > 0 ? 1 : 0;
         invalidate();
     }
 
     void setEthernet() {
         ethernet = true;
+        offline = false;
         invalidate();
     }
 
@@ -56,6 +66,7 @@ final class WifiIcon extends View {
         float band0 = 0, H = Math.min(h * 0.94f, w / 1.5f);
         float cx = w / 2, cy = (h + H) / 2;
         float r0 = 0.33f * H, g = 0.11f * H, b = 0.22f * H;
+        int layer = offline ? c.saveLayer(0, 0, w, h, null) : -1;
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setColor(bars >= 1 ? 0xFFFFFFFF : 0x47FFFFFF);
         p.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -79,6 +90,21 @@ final class WifiIcon extends View {
             // Shorten the sweep a little so the round caps end on the wedge edges
             float trim = (float) Math.toDegrees((b / 2) / rad);
             c.drawArc(r, 225 + trim, 90 - 2 * trim, false, a);
+        }
+        if (offline) {
+            // Cut a gap through the symbol, then draw the exclamation mark in it
+            float bw = b * 0.62f, gap = bw * 0.9f;
+            float top = cy - (r0 + 2 * g + 2 * b), dotY = cy - b * 0.2f;
+            Paint clear = new Paint(Paint.ANTI_ALIAS_FLAG);
+            clear.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR));
+            c.drawRect(cx - bw / 2 - gap, top - b, cx + bw / 2 + gap, cy + b, clear);
+            c.restoreToCount(layer);
+            Paint mark = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mark.setColor(0xFFFFFFFF);
+            mark.setStrokeCap(Paint.Cap.ROUND);
+            mark.setStrokeWidth(bw);
+            c.drawLine(cx, top + bw / 2, cx, dotY - bw * 2.1f, mark);
+            c.drawCircle(cx, dotY - bw * 0.3f, bw * 0.62f, mark);
         }
     }
 }

@@ -170,6 +170,13 @@ adb shell pm disable-user --user 0 com.google.android.tungsten.setupwraith
 
 Rückgängig machen mit `pm enable` für beide Pakete.
 
+Lautstärke-Anzeige im tvOS-Stil (nur bei Ton über Bluetooth; sonst zeigt der Fernseher seine eigene):
+
+```bash
+adb shell settings put secure enabled_accessibility_services com.adrian.tvhome/com.adrian.tvhome.VolumeHud
+adb shell settings put secure accessibility_enabled 1
+```
+
 Bildschirmschoner aktivieren:
 
 ```bash
@@ -215,8 +222,9 @@ Die AirPlay-App braucht Android 12 und läuft daher nicht auf Fire TV.
 Zugangsdaten werden **nicht** im Repository gespeichert. Die Kopplungsskripte legen sie in
 `launcher/assets/` ab (per `.gitignore` ausgeschlossen); danach den Launcher neu bauen.
 
-- **Bosch Smart Home:** `python launcher/pairing/register-bosch.py <controller-ip>` –
+- **Bosch Smart Home:** `python launcher/pairing/register-bosch.py <controller-ip> <gerätename>` –
   Systempasswort eingeben, dann die Taste am Controller kurz drücken (Controller II).
+  Jeder Fernseher braucht einen eigenen Gerätenamen, sonst ersetzt die zweite Kopplung die erste.
 - **Homematic IP:** `python launcher/pairing/register-hmip.py` – SGTIN des Access Points
   eingeben (Aufkleber, beginnt mit `3014F711`), dann die blaue Taste drücken.
 
