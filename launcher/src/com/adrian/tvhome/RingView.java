@@ -12,6 +12,10 @@ final class RingView extends View {
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF r = new RectF();
     private float value;
+    private boolean warnHigh = true;
+
+    /** Red ring above 90 % (for RAM); off for values where high is good. */
+    void setWarnHigh(boolean w) { warnHigh = w; }
 
     RingView(Context c) {
         super(c);
@@ -27,7 +31,7 @@ final class RingView extends View {
 
     void setValue(float v) {
         value = Math.max(0f, Math.min(1f, v));
-        fill.setColor(value > 0.9f ? 0xFFFF6B6B : 0xFFFFFFFF);
+        fill.setColor(warnHigh && value > 0.9f ? 0xFFFF6B6B : 0xFFFFFFFF);
         invalidate();
     }
 

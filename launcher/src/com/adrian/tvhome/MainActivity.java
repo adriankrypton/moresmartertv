@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
@@ -56,7 +57,7 @@ public class MainActivity extends Activity {
     private String bgUrl;
     private LinearLayout content, header, appsRow, postersRow, relSection, infoPanel, weatherCard, weatherHours;
     private HorizontalScrollView appsScroll, postersScroll;
-    private TextView clock, date, ramText, diskText, appsTitle, relTitle;
+    private TextView clock, date, ramText, wifiText, appsTitle, relTitle;
     private TextView wTemp, wGlyph, wCond, wHiLo;
     private View hero;
     private FrameLayout pageHolder;
@@ -65,7 +66,8 @@ public class MainActivity extends Activity {
     private int page = 0;
     private final List<View> tabViews = new ArrayList<>();
     private TextView infoKicker, infoTitle, infoMeta, infoDesc;
-    private RingView ramRing, diskRing;
+    private RingView ramRing;
+    private WifiIcon wifiIcon;
 
     private List<Apps.App> apps = new ArrayList<>();
     private final List<Title> titles = new ArrayList<>();
@@ -224,9 +226,12 @@ public class MainActivity extends Activity {
         stats.setBackground(Ui.pill(this, 22));
         stats.setPadding(dp(12), 0, dp(16), 0);
         ramRing = new RingView(this);
-        diskRing = new RingView(this);
+        wifiIcon = new WifiIcon(this);
         ramText = stat(stats, ramRing, getString(R.string.ram), 0);
-        diskText = stat(stats, diskRing, getString(R.string.disk), 16);
+        // Just the symbol, like the tvOS status bar
+        stats.addView(wifiIcon, margins(dp(22), dp(18), 18, 0, 0, 2));
+        wifiText = new TextView(this); // status kept for accessibility only
+        wifiIcon.setContentDescription("WLAN");
         top.addView(stats, new FrameLayout.LayoutParams(-2, dp(46), Gravity.END | Gravity.CENTER_VERTICAL));
         header.addView(top, new LinearLayout.LayoutParams(-1, dp(46)));
 
@@ -322,7 +327,7 @@ public class MainActivity extends Activity {
         return root;
     }
 
-    private TextView stat(LinearLayout parent, RingView ring, String label, int leftDp) {
+    private TextView stat(LinearLayout parent, View ring, String label, int leftDp) {
         parent.addView(ring, margins(dp(28), dp(28), leftDp, 0, 0, 0));
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
@@ -531,12 +536,27 @@ public class MainActivity extends Activity {
         ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(mi);
         float ram = 1f - (float) mi.availMem / mi.totalMem;
-        StatFs fs = new StatFs(Environment.getDataDirectory().getPath());
-        float disk = 1f - (float) fs.getAvailableBytes() / fs.getTotalBytes();
         ramRing.setValue(ram);
-        diskRing.setValue(disk);
         ramText.setText(Math.round(ram * 100) + " %");
-        diskText.setText(Math.round(disk * 100) + " %");
+
+        // WLAN signal strength (Ethernet shows as full)
+        android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        android.net.NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null || !ni.isConnected()) {
+            wifiIcon.setLevel(0);
+            wifiText.setText("Offline");
+        } else if (ni.getType() == android.net.ConnectivityManager.TYPE_ETHERNET) {
+            wifiIcon.setEthernet();
+            wifiText.setText("LAN");
+        } else {
+            @SuppressWarnings("deprecation")
+            int rssi = ((android.net.wifi.WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
+                    .getConnectionInfo().getRssi();
+            int level = android.net.wifi.WifiManager.calculateSignalLevel(rssi, 101);
+            wifiIcon.setLevel(level);
+            wifiIcon.setContentDescription("WLAN " + level + " %");
+        }
+
     }
 
     // ---------------------------------------------------------------- weather

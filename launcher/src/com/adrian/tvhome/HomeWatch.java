@@ -83,9 +83,12 @@ public class HomeWatch extends Service {
     static void snapshot(View root) {
         try {
             if (root.getWidth() == 0) return;
-            android.graphics.Bitmap b = android.graphics.Bitmap.createBitmap(root.getWidth(), root.getHeight(),
+            // Half resolution is enough for a few seconds of cover and saves memory
+            android.graphics.Bitmap b = android.graphics.Bitmap.createBitmap(root.getWidth() / 2, root.getHeight() / 2,
                     android.graphics.Bitmap.Config.RGB_565);
-            root.draw(new android.graphics.Canvas(b));
+            android.graphics.Canvas cv = new android.graphics.Canvas(b);
+            cv.scale(0.5f, 0.5f);
+            root.draw(cv);
             lastFrame = b;
         } catch (Throwable ignored) { }
     }
@@ -107,16 +110,14 @@ public class HomeWatch extends Service {
         android.view.WindowManager.LayoutParams lp = new android.view.WindowManager.LayoutParams(-1, -1, type,
                 android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN
                         | android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        // Fire OS 7 lifts the cover quickly and must not hold focus; on Fire OS 6
-                        // it stays ~5 s and swallows keys meant for the Amazon home underneath
-                        | (android.os.Build.VERSION.SDK_INT >= 28
-                                ? android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE : 0),
+                        | android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 android.graphics.PixelFormat.OPAQUE);
         try {
             ((android.view.WindowManager) getSystemService(WINDOW_SERVICE)).addView(iv, lp);
             overlay = iv;
             // Backstop if the launch does not land
-            MAIN.postDelayed(this::removeOverlay, android.os.Build.VERSION.SDK_INT >= 28 ? 2500 : 7000);
+            MAIN.postDelayed(this::removeOverlay, android.os.Build.VERSION.SDK_INT >= 28 ? 2500 : 6000);
         } catch (Exception ignored) { }
     }
 

@@ -97,12 +97,17 @@ final class Apps {
             if (a.banner == null) {
                 try { a.banner = pm.getApplicationBanner(pkg); } catch (Exception ignored) { }
             }
-            // Highest resolution icon the app ships (default ones are often blurry on a TV)
+            // Sharper icon than the default density, but never more than XHIGH: some apps ship
+            // huge bitmaps there that exhaust the small heap of a Fire TV stick
             try {
                 int res = ri.getIconResource();
                 if (res != 0) a.icon = pm.getResourcesForApplication(ri.activityInfo.applicationInfo)
-                        .getDrawableForDensity(res, android.util.DisplayMetrics.DENSITY_XXXHIGH, null);
-            } catch (Exception ignored) { }
+                        .getDrawableForDensity(res, android.util.DisplayMetrics.DENSITY_XHIGH, null);
+                if (a.icon instanceof android.graphics.drawable.BitmapDrawable
+                        && ((android.graphics.drawable.BitmapDrawable) a.icon).getBitmap().getByteCount() > 2 * 1024 * 1024) {
+                    a.icon = null; // still too big
+                }
+            } catch (Throwable ignored) { a.icon = null; }
             if (a.icon == null) a.icon = ri.loadIcon(pm);
             map.put(pkg, a);
         }
