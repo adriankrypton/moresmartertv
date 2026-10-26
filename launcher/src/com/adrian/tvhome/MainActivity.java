@@ -229,7 +229,7 @@ public class MainActivity extends Activity {
         wifiIcon = new WifiIcon(this);
         ramText = stat(stats, ramRing, getString(R.string.ram), 0);
         // Just the symbol, like the tvOS status bar
-        stats.addView(wifiIcon, margins(dp(22), dp(18), 18, 0, 0, 2));
+        stats.addView(wifiIcon, margins(dp(27), dp(20), 18, 0, 2, 0));
         wifiText = new TextView(this); // status kept for accessibility only
         wifiIcon.setContentDescription("WLAN");
         top.addView(stats, new FrameLayout.LayoutParams(-2, dp(46), Gravity.END | Gravity.CENTER_VERTICAL));
