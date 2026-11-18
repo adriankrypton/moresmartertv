@@ -624,10 +624,14 @@ public class MainActivity extends Activity {
         try {
             JSONObject w = new JSONObject(json);
             JSONObject cur = w.getJSONObject("current");
-            weatherPlace.setText("➤  " + prefs.getString(SetupActivity.PLACE, ""));
+            weatherPlace.setText(prefs.getString(SetupActivity.PLACE, ""));
+            weatherPlace.setCompoundDrawablesRelative(WeatherIcon.locationArrow(this, 11, 0xB3FFFFFF), null, null, null);
+            weatherPlace.setCompoundDrawablePadding(dp(7));
             int code = cur.getInt("weather_code");
-            wTemp.setText(Math.round(cur.getDouble("temperature_2m")) + "°");
-            wGlyph.setText(weatherGlyph(code, cur.optInt("is_day", 1) == 1));
+            long nowTemp = Math.round(cur.getDouble("temperature_2m"));
+            wTemp.setText(nowTemp + "°");
+            wGlyph.setText("");
+            WeatherIcon.apply(wGlyph, code, cur.optInt("is_day", 1) == 1, 36, 0);
             wCond.setText(weatherText(code));
             JSONObject daily = w.getJSONObject("daily");
             wHiLo.setText("H " + Math.round(daily.getJSONArray("temperature_2m_max").getDouble(0)) + "°   T "
@@ -649,10 +653,11 @@ public class MainActivity extends Activity {
                 TextView h = Ui.text(this, 11.5f, 0xB3FFFFFF, medium);
                 h.setText(i == start ? "Jetzt" : times.getString(i).substring(11, 13) + " Uhr");
                 TextView g = Ui.text(this, 17, 0xFFFFFFFF, regular);
-                g.setText(weatherGlyph(hourly.getJSONArray("weather_code").getInt(i),
-                        hourly.getJSONArray("is_day").getInt(i) == 1));
+                WeatherIcon.apply(g, hourly.getJSONArray("weather_code").getInt(i),
+                        hourly.getJSONArray("is_day").getInt(i) == 1, 28, 0);
                 TextView t = Ui.text(this, 13, 0xFFFFFFFF, medium);
-                t.setText(Math.round(hourly.getJSONArray("temperature_2m").getDouble(i)) + "°");
+                // "Jetzt" repeats the current reading so it matches the big number above
+                t.setText((i == start ? nowTemp : Math.round(hourly.getJSONArray("temperature_2m").getDouble(i))) + "°");
                 col.addView(h);
                 col.addView(g, margins(-2, -2, 0, 6, 0, 0));
                 col.addView(t, margins(-2, -2, 0, 5, 0, 0));
@@ -713,17 +718,6 @@ public class MainActivity extends Activity {
         });
         tabViews.add(t);
         return t;
-    }
-
-    static String weatherGlyph(int code, boolean day) {
-        if (code == 0) return day ? "☀️" : "🌙";
-        if (code <= 2) return day ? "🌤️" : "☁️";
-        if (code == 3) return "☁️";
-        if (code == 45 || code == 48) return "🌫️";
-        if (code >= 71 && code <= 77 || code == 85 || code == 86) return "❄️";
-        if (code >= 95) return "⛈️";
-        if (code >= 80) return "🌦️";
-        return "🌧️";
     }
 
     // ---------------------------------------------------------------- releases

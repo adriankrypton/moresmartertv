@@ -215,13 +215,15 @@ final class SmartHomePage extends LinearLayout {
             JSONObject cur = w.getJSONObject("current");
             JSONObject daily = w.getJSONObject("daily");
             int code = cur.getInt("weather_code");
-            wGlyph.setText(MainActivity.weatherGlyph(code, cur.optInt("is_day", 1) == 1));
+            wGlyph.setText("");
+            WeatherIcon.apply(wGlyph, code, cur.optInt("is_day", 1) == 1, 46, 0);
             wTemp.setText(Math.round(cur.getDouble("temperature_2m")) + "°");
             wCond.setText(MainActivity.weatherText(code));
             wRange.setText("Tief " + Math.round(daily.getJSONArray("temperature_2m_min").getDouble(0)) + "° / Hoch "
                     + Math.round(daily.getJSONArray("temperature_2m_max").getDouble(0)) + "°");
         } catch (Exception e) {
             wGlyph.setText("");
+            wGlyph.setCompoundDrawablesRelative(null, null, null, null);
             wTemp.setText("–");
             wCond.setText("Wetter");
             wRange.setText("lädt …");

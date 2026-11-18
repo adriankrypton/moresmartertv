@@ -221,9 +221,10 @@ public class AmbientDream extends DreamService {
         try {
             JSONObject cur = new JSONObject(prefs.getString("weather2", "{}")).getJSONObject("current");
             int code = cur.getInt("weather_code");
-            weather.setText(MainActivity.weatherGlyph(code, cur.optInt("is_day", 1) == 1) + "  "
-                    + Math.round(cur.getDouble("temperature_2m")) + "°  " + MainActivity.weatherText(code));
+            WeatherIcon.apply(weather, code, cur.optInt("is_day", 1) == 1, 32, 12);
+            weather.setText(Math.round(cur.getDouble("temperature_2m")) + "°  " + MainActivity.weatherText(code));
         } catch (Exception e) {
+            weather.setCompoundDrawablesRelative(null, null, null, null);
             weather.setText("");
         }
         // The room chosen next to the clock on the Home tab; average of all rooms otherwise
