@@ -46,8 +46,42 @@ final class WifiIcon extends View {
         invalidate();
     }
 
+    /** System Wi-Fi drawables (framework ic_wifi_signal_0..4), same look as the status bar. */
+    private final android.graphics.drawable.Drawable[] sys = new android.graphics.drawable.Drawable[5];
+    private boolean sysLoaded, sysMissing;
+
+    private android.graphics.drawable.Drawable systemIcon(int level) {
+        if (!sysLoaded) {
+            sysLoaded = true;
+            android.content.res.Resources r = android.content.res.Resources.getSystem();
+            for (int i = 0; i <= 4; i++) {
+                try {
+                    int id = r.getIdentifier("ic_wifi_signal_" + i, "drawable", "android");
+                    if (id == 0) { sysMissing = true; break; }
+                    android.graphics.drawable.Drawable d = r.getDrawable(id, null).mutate();
+                    d.setTint(0xFFFFFFFF);
+                    sys[i] = d;
+                } catch (Throwable t) { sysMissing = true; break; }
+            }
+        }
+        return sysMissing ? null : sys[level];
+    }
+
     @Override protected void onDraw(Canvas c) {
         float w = getWidth(), h = getHeight();
+        if (!ethernet) {
+            // Prefer the system's own symbol; 3 arcs map onto its 0..4 levels
+            int level = offline ? 0 : bars <= 0 ? 0 : bars == 1 ? 2 : bars == 2 ? 3 : 4;
+            android.graphics.drawable.Drawable d = systemIcon(level);
+            if (d != null) {
+                int s = (int) Math.min(w, h);
+                int left = (int) (w - s) / 2, top = (int) (h - s) / 2;
+                d.setBounds(left, top, left + s, top + s);
+                d.setAlpha(offline ? 0x70 : 0xFF);
+                d.draw(c);
+                return;
+            }
+        }
         if (ethernet) {
             // Simple network plug: three boxes joined by lines
             Paint p = on;
